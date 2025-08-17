@@ -1,7 +1,8 @@
-from enum import Enum
+from enum import Enum, unique
 
+@unique
 class TextType(Enum):
-    PLAIN = "text"
+    TEXT = "text"
     BOLD = "bold"
     ITALIC = "italic"
     CODE = "code"
