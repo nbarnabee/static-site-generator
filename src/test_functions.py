@@ -1,6 +1,6 @@
 import unittest
 from textnode import TextNode, TextType
-from functions import split_nodes_delimiter, text_node_to_html_node
+from functions import *
 
 class TestTextNodeToHTML(unittest.TestCase):
     def test_text(self):
@@ -62,3 +62,103 @@ class TestDelimiterSplit(unittest.TestCase):
         self.assertEqual(new_nodes[0].text_type.value, "text")
         self.assertEqual(new_nodes[1].text_type.value, "code")
         self.assertTrue("**bold**" in new_nodes[-1].text)
+
+
+class TestExtractImages(unittest.TestCase):
+    def test(self):
+        text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        self.assertEqual(extract_markdown_images(text), [("rick roll", "https://i.imgur.com/aKaOqIh.gif"), ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")])
+
+
+class TestExtractLinks(unittest.TestCase):
+    def test(self):
+        text = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
+        self.assertEqual(extract_markdown_links(text), [("to boot dev", "https://www.boot.dev"), ("to youtube", "https://www.youtube.com/@bootdotdev")])
+
+class SplitNodesImageSingle(unittest.TestCase):
+    def singleNoExtra(self):
+        node = TextNode(
+            "This is text with an image ![to boot dev](https://www.boot.dev)",
+            TextType.TEXT,)
+        self.assertEqual(split_nodes_image(node), [TextNode("This is text with an image ", TextType.TEXT, None), TextNode("to boot dev", TextType.IMAGE, "https://www.boot.dev")])
+
+    def singleOneExtra(self):
+        node = TextNode(
+              "This is text with an image ![to boot dev](https://www.boot.dev)!",
+               TextType.TEXT,)
+        self.assertEqual(split_nodes_image(node), [TextNode("This is text with an image ", TextType.TEXT, None), TextNode("to boot dev", TextType.IMAGE, "https://www.boot.dev"), TextNode("!", TextType.TEXT, None)])
+
+    def singleSomeExtra(self):
+        node = TextNode(
+              "This is text with an image ![to boot dev](https://www.boot.dev) with more text!",
+               TextType.TEXT,)
+        self.assertEqual(split_nodes_image(node), [TextNode("This is text with an image ", TextType.TEXT, None), TextNode("to boot dev", TextType.IMAGE, "https://www.boot.dev"), TextNode("with more text!", TextType.TEXT, None)])
+
+
+class SplitNodesImageMulti(unittest.TestCase):
+    def multiNoExtraAfter(self):
+        node = TextNode(
+            "This is text with an image ![to boot dev](https://www.boot.dev) and a second ![to boot dev](https://www.boot.dev)",
+            TextType.TEXT,)
+        self.assertEqual(split_nodes_image(node),
+        [TextNode("This is text with an image ", TextType.TEXT, None),
+        TextNode("to boot dev", TextType.IMAGE, "https://www.boot.dev"),
+        TextNode(" and a second ", TextType.TEXT, None),
+        TextNode("to boot dev", TextType.IMAGE, "https://www.boot.dev"),
+        ])
+
+    def multiOneExtraAfter(self):
+        node = TextNode(
+            "This is text with an image ![to boot dev](https://www.boot.dev) and a second ![to boot dev](https://www.boot.dev)!",
+            TextType.TEXT,)
+        self.assertEqual(split_nodes_image(node),
+        [TextNode("This is text with an image ", TextType.TEXT, None),
+        TextNode("to boot dev", TextType.IMAGE, "https://www.boot.dev"),
+        TextNode(" and a second ", TextType.TEXT, None),
+        TextNode("to boot dev", TextType.IMAGE, "https://www.boot.dev"),
+        TextNode("!", TextType.TEXT, None)
+        ])
+
+    def multiSomeExtra(self):
+        node = TextNode(
+            "This is text with an image ![to boot dev](https://www.boot.dev) and a second ![to boot dev](https://www.boot.dev) happy little image",
+            TextType.TEXT,)
+        self.assertEqual(split_nodes_image(node),
+        [TextNode("This is text with an image ", TextType.TEXT, None),
+        TextNode("to boot dev", TextType.IMAGE, "https://www.boot.dev"),
+        TextNode(" and a second ", TextType.TEXT, None),
+        TextNode("to boot dev", TextType.IMAGE, "https://www.boot.dev"),
+        TextNode(" happy little image", TextType.TEXT, None)
+        ])
+
+    def noExtraBetween(self):
+        node = TextNode(
+            "This is text with adjacent images ![to boot dev](https://www.boot.dev)![to b00t dev](https://www.boot.dev)",
+            TextType.TEXT,)
+        self.assertEqual(split_nodes_image(node),
+        [TextNode("This is text with adjacent images ", TextType.TEXT, None),
+        TextNode("to boot dev", TextType.IMAGE, "https://www.boot.dev"),
+        TextNode("to b00t dev", TextType.IMAGE, "https://www.boot.dev")
+        ])
+
+
+class SplitNodesLinkSingle(unittest.TestCase):
+    def singleNoExtra(self):
+        node = TextNode(
+            "This is text with a link [to boot dev](https://www.boot.dev)",
+            TextType.TEXT,)
+        self.assertEqual(split_nodes_link(node), [TextNode("This is text with a link ", TextType.TEXT, None), TextNode("to boot dev", TextType.LINK, "https://www.boot.dev")])
+
+    def singleOneExtra(self):
+        node = TextNode(
+              "This is text with a link [to boot dev](https://www.boot.dev)!",
+               TextType.TEXT,)
+        self.assertEqual(split_nodes_image(node), [TextNode("This is text with a link ", TextType.TEXT, None), TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"), TextNode("!", TextType.TEXT, None)])
+
+    def singleSomeExtra(self):
+        node = TextNode(
+              "This is text with a link [to boot dev](https://www.boot.dev) with more text!",
+               TextType.TEXT,)
+        self.assertEqual(split_nodes_image(node), [TextNode("This is text with a link ", TextType.TEXT, None), TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"), TextNode("with more text!", TextType.TEXT, None)])
+
+# these are literally the same function; if I really want to I can modify the multi-tester functions later

@@ -1,3 +1,4 @@
+import re
 from htmlnode import LeafNode
 from textnode import TextNode, TextType
 
@@ -53,7 +54,59 @@ def split_nodes_delimiter(nodes, delimiter, text_type):
     return new_nodes
 
 
+def extract_markdown_images(text):
+    return re.findall(r"\!\[(.*?)\]\((.*?)\)", text)
 
 
+def extract_markdown_links(text):
+    return re.findall(r"\[(.*?)\]\((.*?)\)", text)
 
 
+def split_nodes_image(nodes):
+    new_nodes = []
+    nodes = nodes if isinstance(nodes, list) else [nodes]
+    for node in nodes:
+        split_nodes = []
+        if node.text_type not in TextType:
+            raise Exception("Invalid text type given")
+        images = extract_markdown_images(node.text)
+        if len(images) == 0:
+            split_nodes.append(node)
+        else:
+            min_index = 0
+            for image in images:
+                pattern = f"![{image[0]}]({image[1]})"
+                start_index = node.text.index(pattern, min_index)
+                split_nodes.append(TextNode(node.text[min_index:start_index], TextType.TEXT))
+                split_nodes.append(TextNode(image[0], TextType.IMAGE, image[1]))
+                min_index += start_index + len(pattern)
+            # if we've run out of images but aren't at the end of the string, there must be more text
+            if min_index < len(node.text):
+                split_nodes.append(TextNode(node.text[min_index:], TextType.TEXT))
+        new_nodes.extend(split_nodes)
+    return new_nodes
+
+
+def split_nodes_link(nodes):
+    new_nodes = []
+    nodes = nodes if isinstance(nodes, list) else [nodes]
+    for node in nodes:
+        split_nodes = []
+        if node.text_type not in TextType:
+            raise Exception("Invalid text type given")
+        images = extract_markdown_images(node.text)
+        if len(images) == 0:
+            split_nodes.append(node)
+        else:
+            min_index = 0
+            for image in images:
+                pattern = f"[{image[0]}]({image[1]})"
+                start_index = node.text.index(pattern, min_index)
+                split_nodes.append(TextNode(node.text[min_index:start_index], TextType.TEXT))
+                split_nodes.append(TextNode(image[0], TextType.LINK, image[1]))
+                min_index += start_index + len(pattern)
+            # if we've run out of images but aren't at the end of the string, there must be more text
+            if min_index < len(node.text):
+                split_nodes.append(TextNode(node.text[min_index:], TextType.TEXT))
+        new_nodes.extend(split_nodes)
+    return new_nodes
