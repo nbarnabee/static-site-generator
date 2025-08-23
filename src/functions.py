@@ -77,11 +77,12 @@ def split_nodes_image(nodes):
             for image in images:
                 pattern = f"![{image[0]}]({image[1]})"
                 start_index = node.text.index(pattern, min_index)
-                split_nodes.append(TextNode(node.text[min_index:start_index], TextType.TEXT))
+                if min_index < start_index:
+                    split_nodes.append(TextNode(node.text[min_index:start_index], TextType.TEXT))
                 split_nodes.append(TextNode(image[0], TextType.IMAGE, image[1]))
-                min_index += start_index + len(pattern)
+                min_index = start_index + len(pattern)
             # if we've run out of images but aren't at the end of the string, there must be more text
-            if min_index < len(node.text):
+            if min_index < len(node.text) - 1:
                 split_nodes.append(TextNode(node.text[min_index:], TextType.TEXT))
         new_nodes.extend(split_nodes)
     return new_nodes
@@ -102,11 +103,13 @@ def split_nodes_link(nodes):
             for link in links:
                 pattern = f"[{link[0]}]({link[1]})"
                 start_index = node.text.index(pattern, min_index)
-                split_nodes.append(TextNode(node.text[min_index:start_index], TextType.TEXT))
+                if min_index < start_index:
+                    split_nodes.append(TextNode(node.text[min_index:start_index], TextType.TEXT))
                 split_nodes.append(TextNode(link[0], TextType.LINK, link[1]))
-                min_index += start_index + len(pattern)
+                min_index = start_index + len(pattern)
             # if we've run out of images but aren't at the end of the string, there must be more text
-            if min_index < len(node.text):
+            if min_index < len(node.text) - 1:
+                print(node.text[min_index:])
                 split_nodes.append(TextNode(node.text[min_index:], TextType.TEXT))
         new_nodes.extend(split_nodes)
     return new_nodes
