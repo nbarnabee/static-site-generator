@@ -33,7 +33,7 @@ def split_nodes_delimiter(nodes, delimiter, text_type):
             raise Exception("Invalid text type given")
         # for now we will disallow nested inline text types
         # or rather we will assume that they don't exist
-        if node_type != "text":
+        if node_type != "text" or delimiter not in node.text:
             new_nodes.append(node)
         else:
             split_nodes = []
@@ -50,7 +50,7 @@ def split_nodes_delimiter(nodes, delimiter, text_type):
                     # strip empty sections (e.g., if the text block ends on the delimiter)
                     elif len(split_node[i]):
                         split_nodes.append(TextNode(split_node[i], TextType.TEXT))
-        new_nodes.extend(split_nodes)
+            new_nodes.extend(split_nodes)
     return new_nodes
 
 
@@ -94,19 +94,29 @@ def split_nodes_link(nodes):
         split_nodes = []
         if node.text_type not in TextType:
             raise Exception("Invalid text type given")
-        images = extract_markdown_images(node.text)
-        if len(images) == 0:
+        links = extract_markdown_links(node.text)
+        if len(links) == 0:
             split_nodes.append(node)
         else:
             min_index = 0
-            for image in images:
-                pattern = f"[{image[0]}]({image[1]})"
+            for link in links:
+                pattern = f"[{link[0]}]({link[1]})"
                 start_index = node.text.index(pattern, min_index)
                 split_nodes.append(TextNode(node.text[min_index:start_index], TextType.TEXT))
-                split_nodes.append(TextNode(image[0], TextType.LINK, image[1]))
+                split_nodes.append(TextNode(link[0], TextType.LINK, link[1]))
                 min_index += start_index + len(pattern)
             # if we've run out of images but aren't at the end of the string, there must be more text
             if min_index < len(node.text):
                 split_nodes.append(TextNode(node.text[min_index:], TextType.TEXT))
         new_nodes.extend(split_nodes)
     return new_nodes
+
+
+def text_to_textnodes(text):
+    delimiters = ["**", "_", "`"]
+    text_nodes = split_nodes_delimiter(TextNode(text, TextType.TEXT), "**", TextType.BOLD)
+    text_nodes = split_nodes_delimiter(text_nodes, "_", TextType.ITALIC)
+    text_nodes = split_nodes_delimiter(text_nodes, "`", TextType.CODE)
+    text_nodes = split_nodes_image(text_nodes)
+    text_nodes = split_nodes_link(text_nodes)
+    return text_nodes

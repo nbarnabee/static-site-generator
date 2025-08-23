@@ -1,11 +1,11 @@
 from htmlnode import HTMLNode, LeafNode, ParentNode
 from textnode import TextNode, TextType
-from functions import split_nodes_delimiter, text_node_to_html_node
+from functions import *
 
 
 def main():
-    print("I just use this for preliminary manual testing")
-
+    text = "This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+    print(text_to_textnodes(text))
 
 if __name__ == "__main__":
     main()
