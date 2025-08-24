@@ -1,6 +1,6 @@
 import unittest
 from textnode import TextNode, TextType
-from functions import *
+from inline_functions import *
 
 class TestFunctions(unittest.TestCase):
     def test_text(self):
