@@ -1,15 +1,12 @@
 from htmlnode import HTMLNode, LeafNode, ParentNode
 from textnode import TextNode, TextType
-from functions import *
+from inline_functions import *
+from block_functions import *
 
 
 def main():
-    node = TextNode(
-            "![image](https://www.example.COM/IMAGE.PNG)",
-            TextType.TEXT,
-        )
-    new_nodes = split_nodes_image([node])
-    print(new_nodes)
+    block = "######## This is a paragraph\n> This should be right`"
+    print(block_to_block_type(block))
 
 if __name__ == "__main__":
     main()

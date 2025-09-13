@@ -109,7 +109,6 @@ def split_nodes_link(nodes):
                 min_index = start_index + len(pattern)
             # if we've run out of images but aren't at the end of the string, there must be more text
             if min_index < len(node.text) - 1:
-                print(node.text[min_index:])
                 split_nodes.append(TextNode(node.text[min_index:], TextType.TEXT))
         new_nodes.extend(split_nodes)
     return new_nodes
