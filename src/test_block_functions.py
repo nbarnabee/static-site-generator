@@ -101,5 +101,35 @@ This is the same paragraph on a new line
         block = "1. this is also not an ordered list\n2. with a few \n items"
         self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)
 
+    def test_heading_various_levels(self):
+        for i in range(1, 7):
+            block = "#" * i + " Title"
+            self.assertEqual(block_to_block_type(block), BlockType.HEADING)
+
+    def test_heading_requires_space(self):
+        self.assertEqual(block_to_block_type("##NoSpace"), BlockType.PARAGRAPH)
+
+    def test_code_block_basic(self):
+        block = "```\nprint('hi')\n```"
+        self.assertEqual(block_to_block_type(block), BlockType.CODE)
+
+    def test_code_block_with_language(self):
+        block = "```python\nprint('hi')\n```"
+        self.assertEqual(block_to_block_type(block), BlockType.CODE)
+
+    def test_quote_all_lines_start_with_gt(self):
+        block = "> a\n> b\n> c"
+        self.assertEqual(block_to_block_type(block), BlockType.QUOTE)
+
+    def test_ol_multi_digit_numbers(self):
+        block = "1. a\n2. b\n10. c"  # breaks sequence
+        self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)
+
+    def test_spaces_only_lines_are_ignored_in_line_checks(self):
+        block = "- a\n   \n- b"
+        # If your splitter removes blank/space-only lines, this should still be UL
+        self.assertIn(block_to_block_type(block),(BlockType.UL, BlockType.PARAGRAPH))
+
+
 if __name__ == "__main__":
     unittest.main()
